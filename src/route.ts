@@ -9,7 +9,6 @@ import type {
   MetaFunction,
   MiddlewareFunction,
   ShouldRevalidateFunction,
-  unstable_RSCRouteConfigEntry,
 } from "react-router";
 
 export type FrameworkModule = {
