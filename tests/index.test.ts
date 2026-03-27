@@ -56,6 +56,17 @@ describe("route module", () => {
     );
   });
 
+  test("throws if mutually exclusive exports are used", async () => {
+    const input = [
+      "'use route';",
+      "export default function Component() {}",
+      "export function ServerComponent() {}",
+    ];
+    await expect(directiveTransformServer(input.join("\n"), "/test.ts")).rejects.toThrow(
+      /Module cannot have both a default export and a ServerComponent export/,
+    );
+  });
+
   test("skips transform if directive is not present", async () => {
     const input = ['"use something else";', "export default function Component() {}"];
     const result = await directiveTransformServer(input.join("\n"), "/test.ts");

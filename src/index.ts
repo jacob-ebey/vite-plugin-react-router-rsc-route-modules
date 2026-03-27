@@ -35,6 +35,13 @@ const SERVER_EXPORTS = [
 
 const ALLOWED_EXPORTS = new Set([...CLIENT_EXPORTS, ...SERVER_EXPORTS, ...SHARED_EXPORTS]);
 
+const MUTUALLY_EXCLUSIVE_EXPORTS = [
+  ["default", "ServerComponent"],
+  ["Layout", "ServerLayout"],
+  ["ErrorBoundary", "ServerErrorBoundary"],
+  ["HydrateFallback", "ServerHydrateFallback"],
+];
+
 type SharedContext = {
   error(message: string): never;
 };
@@ -119,11 +126,16 @@ export function routeModuleDirective({
 
         let nakedImports: string[] = [];
 
+        const exportedNames = findExportedNames.call(this, program);
+
+        validateMutuallyExclusiveExports.call(this, exportedNames);
+
         if (clientRouteModuleType) {
           nakedImports = createClientRouteModuleChunk.call(
             sharedContext,
             program,
             magicString,
+            exportedNames,
             clientRouteModuleType,
           );
         } else if (isClientRouteModule) {
@@ -133,7 +145,13 @@ export function routeModuleDirective({
           nakedImports = createServerRouteModuleChunk.call(sharedContext, program, magicString);
         } else if (isServerRouteModule) {
           magicString = new MagicString("", { filename });
-          nakedImports = createServerRouteModule.call(sharedContext, id, program, magicString);
+          nakedImports = createServerRouteModule.call(
+            sharedContext,
+            id,
+            program,
+            magicString,
+            exportedNames,
+          );
         } else if (isSharedRouteModule) {
           nakedImports = createSharedRouteModuleChunk.call(sharedContext, program, magicString);
         } else {
@@ -183,16 +201,26 @@ export function routeModuleDirective({
   } satisfies vite.Plugin;
 }
 
+function validateMutuallyExclusiveExports(this: SharedContext, exportedNames: Set<string>) {
+  for (const [exportA, exportB] of MUTUALLY_EXCLUSIVE_EXPORTS) {
+    if (exportedNames.has(exportA) && exportedNames.has(exportB)) {
+      this.error(
+        `Module cannot have both a ${exportA} export and a ${exportB} export, these exports are mutually exclusive.`,
+      );
+    }
+  }
+}
+
 function createClientRouteModuleChunk(
   this: SharedContext,
   program: vite.ESTree.Program,
   magicString: MagicString,
+  exportedNames: Set<string>,
   clientRouteModuleType: string,
 ) {
   const nakedImports = findNakedImports.call(this, program);
-  const foundExports = findExportedNames.call(this, program);
 
-  const exportsToRemove = new Set(foundExports);
+  const exportsToRemove = new Set(exportedNames);
   exportsToRemove.delete(clientRouteModuleType);
 
   removeExports.call(this, program, magicString, [...exportsToRemove]);
@@ -256,8 +284,8 @@ function createServerRouteModule(
   id: string,
   program: vite.ESTree.Program,
   magicString: MagicString,
+  exportedNames: Set<string>,
 ) {
-  const exportedNames = findExportedNames.call(this, program);
   const nakedImports = findNakedImports(program);
 
   let needsReactImport = false;
