@@ -3,5 +3,10 @@
 import "./index.css";
 
 export default function Index() {
-  return <h1 className="index">Index</h1>;
+  return (
+    <>
+      <title>Index</title>
+      <h1 className="index">Index</h1>
+    </>
+  );
 }

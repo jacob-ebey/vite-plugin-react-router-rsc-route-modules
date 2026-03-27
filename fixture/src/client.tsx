@@ -1,6 +1,7 @@
 import { startTransition, StrictMode } from "react";
-import { hydrateRoot, type ReactFormState } from "react-dom/client";
+import { createRoot, hydrateRoot, type ReactFormState } from "react-dom/client";
 import {
+  createFromFetch,
   createFromReadableStream,
   createTemporaryReferenceSet,
   encodeReply,
@@ -13,6 +14,8 @@ import {
   type unstable_RSCPayload as RSCPayload,
 } from "react-router/dom";
 
+declare const SINGLE_PAGE_APP: boolean;
+
 setServerCallback(
   createCallServer({
     createFromReadableStream,
@@ -21,14 +24,46 @@ setServerCallback(
   }),
 );
 
-createFromReadableStream<RSCPayload>(getRSCStream()).then(
+function getPayload() {
+  if (SINGLE_PAGE_APP) {
+    const url = new URL(window.location.href);
+    if (url.pathname === "/") {
+      url.pathname = "/_.rsc";
+    } else {
+      url.pathname += ".rsc";
+    }
+    return createFromFetch<RSCPayload>(
+      fetch(url.href, {
+        headers: {
+          Accept: "text/x-component",
+        },
+      }),
+    );
+  }
+
+  return createFromReadableStream<RSCPayload>(getRSCStream());
+}
+
+getPayload().then(
   (payload) => {
     startTransition(async () => {
+      if (SINGLE_PAGE_APP) {
+        createRoot(document.body).render(
+          <StrictMode>
+            <RSCHydratedRouter
+              createFromReadableStream={createFromReadableStream}
+              payload={payload}
+            />
+          </StrictMode>,
+        );
+        return;
+      }
+
       const formState =
         payload.type === "render" ? ((await payload.formState) as ReactFormState) : undefined;
 
       hydrateRoot(
-        document,
+        SINGLE_PAGE_APP ? document.body : document,
         <StrictMode>
           <RSCHydratedRouter
             createFromReadableStream={createFromReadableStream}

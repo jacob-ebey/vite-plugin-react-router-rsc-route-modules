@@ -13,6 +13,8 @@ import {
 
 import { routes } from "./routes.ts";
 
+declare const SINGLE_PAGE_APP: boolean;
+
 export function fetchServer(request: Request, requestContext?: RouterContextProvider) {
   return matchRSCServerRequest({
     basename: "/",
@@ -28,7 +30,7 @@ export function fetchServer(request: Request, requestContext?: RouterContextProv
     // The app routes.
     routes,
     // The route discovery configuration.
-    routeDiscovery: { mode: "initial" },
+    routeDiscovery: { mode: SINGLE_PAGE_APP ? "lazy" : "initial" },
     // Encode the match with the React Server implementation.
     generateResponse(match, options) {
       return new Response(renderToReadableStream(match.payload, options), {
@@ -47,7 +49,13 @@ export default {
 
     const ssr = await import.meta.viteRsc.loadModule<typeof import("./ssr.tsx")>("ssr", "index");
 
-    return await ssr.generateHTML(request, await fetchServer(request, requestContext));
+    const rscResponse = await fetchServer(request, requestContext);
+
+    if (SINGLE_PAGE_APP) {
+      return rscResponse;
+    }
+
+    return await ssr.generateHTML(request, rscResponse);
   },
 };
 
