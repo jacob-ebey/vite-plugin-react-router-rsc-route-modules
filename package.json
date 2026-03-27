@@ -19,6 +19,7 @@
   "type": "module",
   "exports": {
     ".": "./dist/index.mjs",
+    "./route": "./dist/route.mjs",
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -37,11 +38,18 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
     "@typescript/native-preview": "7.0.0-dev.20260326.1",
     "bumpp": "^11.0.1",
+    "react": "^19.2.4",
+    "react-router": "0.0.0-nightly-fbe4951b9-20260326",
     "typescript": "^5.9.3",
     "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.14",
     "vite-plus": "~0.1.11"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-router": "*"
   },
   "packageManager": "pnpm@10.33.0",
   "pnpm": {
@@ -52,6 +60,7 @@
   },
   "inlinedDependencies": {
     "@oxc-project/types": "0.122.0",
-    "@voidzero-dev/vite-plus-core": "0.1.14"
+    "@voidzero-dev/vite-plus-core": "0.1.14",
+    "react-router": "0.0.0-nightly-fbe4951b9-20260326"
   }
 }
