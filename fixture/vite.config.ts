@@ -5,19 +5,21 @@ import { pathToFileURL } from "node:url";
 import mdx from "@mdx-js/rollup";
 import react from "@vitejs/plugin-react";
 import rsc from "@vitejs/plugin-rsc";
-import { defineConfig, preview, type Plugin } from "vite-plus";
+import { defineConfig, preview, PreviewServer, type Plugin } from "vite-plus";
 import devtoolsJson from "vite-plugin-devtools-json";
 
 import { knownRouteModules, routeModuleDirective } from "../src/index";
 
 const SINGLE_PAGE_APP = !!process.env.SPA;
+const PRERENDER_PATHS = ["/", "/post/post-1"];
 
 export default defineConfig({
   define: {
     SINGLE_PAGE_APP: JSON.stringify(SINGLE_PAGE_APP),
   },
   plugins: [
-    SINGLE_PAGE_APP && spaPlugin({ prerender: ["/", "/post/post-1"] }),
+    SINGLE_PAGE_APP && spaPlugin(),
+    prerender(PRERENDER_PATHS),
     knownRouteModules({
       isKnownRouteModule: (id) => id.endsWith("/root.tsx"),
     }),
@@ -73,7 +75,7 @@ export default defineConfig({
   },
 });
 
-function spaPlugin({ prerender }: { prerender?: string[] } = {}): Plugin[] {
+function spaPlugin(): Plugin[] {
   // serve fallback.html before rsc server
   return [
     {
@@ -123,61 +125,71 @@ function spaPlugin({ prerender }: { prerender?: string[] } = {}): Plugin[] {
           });
         };
       },
-      buildApp: {
-        order: "post",
-        async handler(builder) {
-          if (!prerender?.length) return;
-          const previewServer = await preview();
+    },
+  ];
+}
+
+function prerender(prerenderPaths: string[]) {
+  return {
+    name: "prerender",
+    buildApp: {
+      order: "post",
+      async handler() {
+        if (!prerenderPaths?.length) return;
+        let previewServer: PreviewServer | undefined;
+
+        try {
+          previewServer = await preview();
 
           const ssrBuildPath = pathToFileURL(path.resolve(process.cwd(), "dist/ssr/index.js")).href;
           const ssrModule = (await import(ssrBuildPath)) as typeof import("./src/ssr.tsx");
 
-          try {
-            const address = previewServer.httpServer.address();
-            let port: number;
-            if (typeof address === "string") {
-              port = parseInt(address.split(":").pop()!);
-            } else if (address && typeof address === "object") {
-              port = address.port;
-            } else {
-              throw new Error("Failed to determine preview server port");
-            }
-
-            process.env.PRERENDER = "1";
-
-            for (const prerenderPath of prerender) {
-              const url = new URL(prerenderPath, `http://localhost:${port}`);
-
-              const request = new Request(url.href, {
-                headers: {
-                  Accept: "text/x-component",
-                },
-              });
-
-              const serverResponse = await fetch(request);
-              const rscResponse = serverResponse.clone();
-              const htmlResponse = await ssrModule.generateHTML(request, serverResponse);
-
-              const htmlFilePath = `dist/client${url.pathname.replace(/\/$/, "")}/index.html`;
-              let rscFilePath: string;
-              if (url.pathname === "/") {
-                rscFilePath = "dist/client/_.rsc";
-              } else {
-                rscFilePath = `dist/client${url.pathname.replace(/\/$/, "")}.rsc`;
-              }
-
-              await fsp.mkdir(path.dirname(htmlFilePath), { recursive: true });
-
-              await Promise.all([
-                fsp.writeFile(htmlFilePath, await htmlResponse.text()),
-                fsp.writeFile(rscFilePath, Buffer.from(await rscResponse.arrayBuffer())),
-              ]);
-            }
-          } finally {
-            await previewServer.close();
+          const address = previewServer.httpServer.address();
+          let port: number;
+          if (typeof address === "string") {
+            port = parseInt(address.split(":").pop()!);
+          } else if (address && typeof address === "object") {
+            port = address.port;
+          } else {
+            throw new Error("Failed to determine preview server port");
           }
-        },
+
+          process.env.PRERENDER = "1";
+
+          for (const prerenderPath of prerenderPaths) {
+            const url = new URL(prerenderPath, `http://localhost:${port}`);
+
+            const request = new Request(url.href, {
+              headers: {
+                Accept: "text/x-component",
+              },
+            });
+
+            const serverResponse = await fetch(request);
+            const rscResponse = serverResponse.clone();
+            const htmlResponse = await ssrModule.generateHTML(request, serverResponse);
+
+            const htmlFilePath = `dist/client${url.pathname.replace(/\/$/, "")}/index.html`;
+            let rscFilePath: string;
+            if (url.pathname === "/") {
+              rscFilePath = "dist/client/_.rsc";
+            } else {
+              rscFilePath = `dist/client${url.pathname.replace(/\/$/, "")}.rsc`;
+            }
+
+            await fsp.mkdir(path.dirname(htmlFilePath), { recursive: true });
+
+            await Promise.all([
+              fsp.writeFile(htmlFilePath, await htmlResponse.text()),
+              fsp.writeFile(rscFilePath, Buffer.from(await rscResponse.arrayBuffer())),
+            ]);
+          }
+        } catch (error) {
+          console.error("Error during prerendering:", error);
+        } finally {
+          await previewServer?.close();
+        }
       },
     },
-  ];
+  };
 }

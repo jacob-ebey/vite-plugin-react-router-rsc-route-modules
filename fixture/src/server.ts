@@ -49,7 +49,7 @@ export default {
 
     const rscResponse = await fetchServer(request, requestContext);
 
-    if (SINGLE_PAGE_APP) {
+    if (SINGLE_PAGE_APP || process.env.PRERENDER) {
       return rscResponse;
     }
 
