@@ -1,5 +1,4 @@
 import rsc from "@vitejs/plugin-rsc";
-import inspect from "vite-plugin-inspect";
 import { defineConfig } from "vite-plus";
 
 import { routeModuleDirective } from "../src/index";
@@ -11,9 +10,6 @@ export default defineConfig({
       entries: {
         rsc: "./src/server.ts",
       },
-    }),
-    inspect({
-      build: true,
     }),
   ],
   build: {
