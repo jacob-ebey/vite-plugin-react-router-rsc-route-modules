@@ -1,5 +1,3 @@
-"use route";
-
 import { Link, Outlet, useNavigation, useRouteError } from "react-router";
 
 export function Layout({ children }: { children?: React.ReactNode }) {

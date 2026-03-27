@@ -39,8 +39,23 @@ type SharedContext = {
   error(message: string): never;
 };
 
-export default function rscRouteModules() {
-  return [routeModuleDirective()];
+export function knownRouteModules({
+  environments: { server = ["rsc"] } = {},
+  isKnownRouteModule,
+}: {
+  environments?: {
+    server?: string[];
+  };
+  isKnownRouteModule: (id: string) => boolean;
+}) {
+  return {
+    name: "vite-plugin-known-route-modules",
+    transform(code, id) {
+      if (!server.includes(this.environment.name) || !isKnownRouteModule(removeIdQuery(id))) return;
+
+      return '"use route";\n' + code;
+    },
+  } satisfies vite.Plugin;
 }
 
 export function routeModuleDirective({
@@ -528,4 +543,14 @@ function createIdFrom(
   searchParams.delete("shared-route-module");
   searchParams.set(type, value || "");
   return `${base}?${searchParams.toString()}`;
+}
+
+function removeIdQuery(id: string) {
+  const [base, ...rest] = id.split("?");
+  const searchParams = new URLSearchParams(rest.join("?"));
+  searchParams.delete("client-route-module");
+  searchParams.delete("server-route-module");
+  searchParams.delete("shared-route-module");
+  const newSearch = searchParams.toString();
+  return newSearch ? `${base}?${newSearch}` : base;
 }

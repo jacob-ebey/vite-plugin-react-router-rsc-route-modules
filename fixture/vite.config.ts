@@ -2,10 +2,13 @@ import rsc from "@vitejs/plugin-rsc";
 import { defineConfig } from "vite-plus";
 import devtoolsJson from "vite-plugin-devtools-json";
 
-import { routeModuleDirective } from "../src/index";
+import { knownRouteModules, routeModuleDirective } from "../src/index";
 
 export default defineConfig({
   plugins: [
+    knownRouteModules({
+      isKnownRouteModule: (id) => id.endsWith("/root.tsx"),
+    }),
     routeModuleDirective(),
     rsc({
       entries: {
