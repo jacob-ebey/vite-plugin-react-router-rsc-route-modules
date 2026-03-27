@@ -1,4 +1,6 @@
 import * as fsp from "node:fs/promises";
+import mdx from "@mdx-js/rollup";
+import react from "@vitejs/plugin-react";
 import rsc from "@vitejs/plugin-rsc";
 import { defineConfig, type Plugin } from "vite-plus";
 import devtoolsJson from "vite-plugin-devtools-json";
@@ -17,7 +19,9 @@ export default defineConfig({
       isKnownRouteModule: (id) => id.endsWith("/root.tsx"),
     }),
     routeModuleDirective(),
+    react(),
     rsc(),
+    { enforce: "pre", ...mdx() },
     devtoolsJson(),
   ],
   environments: {
