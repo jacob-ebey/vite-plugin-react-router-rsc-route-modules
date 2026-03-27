@@ -17,7 +17,6 @@ export default defineConfig({
     devtoolsJson(),
   ],
   build: {
-    minify: false,
     rollupOptions: {
       output: {
         manualChunks(id) {

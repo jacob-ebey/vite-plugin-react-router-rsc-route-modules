@@ -1,8 +1,11 @@
 "use route";
 
-import { Link, Outlet, useRouteError } from "react-router";
+import { Link, Outlet, useNavigation, useRouteError } from "react-router";
 
 export function Layout({ children }: { children?: React.ReactNode }) {
+  const navigation = useNavigation();
+  const busy = navigation.state !== "idle";
+
   return (
     <html lang="en">
       <head>
@@ -15,6 +18,7 @@ export function Layout({ children }: { children?: React.ReactNode }) {
           <Link to="/">Home</Link> | <Link to="/about">About</Link>
         </nav>
         {children}
+        <footer>{busy ? "Busy.." : "Ready."}</footer>
       </body>
     </html>
   );
