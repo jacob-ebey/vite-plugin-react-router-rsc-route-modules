@@ -63,7 +63,7 @@ getPayload().then(
         payload.type === "render" ? ((await payload.formState) as ReactFormState) : undefined;
 
       hydrateRoot(
-        SINGLE_PAGE_APP ? document.body : document,
+        document,
         <StrictMode>
           <RSCHydratedRouter
             createFromReadableStream={createFromReadableStream}
