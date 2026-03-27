@@ -25,27 +25,35 @@ setServerCallback(
 );
 
 function getPayload() {
-  if (SINGLE_PAGE_APP) {
+  if (!self.__FLIGHT_DATA) {
     const url = new URL(window.location.href);
     if (url.pathname === "/") {
       url.pathname = "/_.rsc";
     } else {
       url.pathname += ".rsc";
     }
-    return createFromFetch<RSCPayload>(
-      fetch(url.href, {
-        headers: {
-          Accept: "text/x-component",
-        },
-      }),
-    );
+    return {
+      prerendered: false,
+      payload: createFromFetch<RSCPayload>(
+        fetch(url.href, {
+          headers: {
+            Accept: "text/x-component",
+          },
+        }),
+      ),
+    };
   }
 
-  return createFromReadableStream<RSCPayload>(getRSCStream());
+  return {
+    prerendered: true,
+    payload: createFromReadableStream<RSCPayload>(getRSCStream()),
+  };
 }
 
-getPayload().then(
+const { prerendered, payload } = getPayload();
+Promise.resolve(payload).then(
   (payload) => {
+    console.log({ prerendered });
     startTransition(async () => {
       if (SINGLE_PAGE_APP) {
         createRoot(document.body).render(

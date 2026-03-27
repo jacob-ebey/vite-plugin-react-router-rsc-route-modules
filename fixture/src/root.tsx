@@ -1,9 +1,10 @@
-import { Link, Outlet, useMatch, useMatches, useNavigation, useRouteError } from "react-router";
+import { Link, Outlet, useRouteError } from "react-router";
+import { NavLinks, NavStatus } from "./root.client.tsx";
 
 declare const SINGLE_PAGE_APP: boolean;
 
 function Shell({ children }: { children?: React.ReactNode }) {
-  return SINGLE_PAGE_APP ? (
+  return SINGLE_PAGE_APP && !process.env.PRERENDER ? (
     <>{children}</>
   ) : (
     <html lang="en">
@@ -16,26 +17,14 @@ function Shell({ children }: { children?: React.ReactNode }) {
   );
 }
 
-export function Layout({ children }: { children?: React.ReactNode }) {
-  const navigation = useNavigation();
-  const busy = navigation.state !== "idle";
-
-  const handle = useMatches().find((match) => match.id === "root")?.handle as
-    | undefined
-    | { posts: string[] };
-
+export function ServerLayout({ children }: { children?: React.ReactNode }) {
   return (
     <Shell>
       <nav>
-        <Link to="/">Home</Link> | <Link to="/about">About</Link> |{" "}
-        {handle?.posts.map((id) => (
-          <span key={id}>
-            <Link to={`/post/${id}`}>{id}</Link> |{" "}
-          </span>
-        ))}
+        <Link to="/">Home</Link> | <Link to="/about">About</Link> | <NavLinks />
       </nav>
       {children}
-      <footer>{busy ? "Busy.." : "Ready."}</footer>
+      <NavStatus />
     </Shell>
   );
 }
