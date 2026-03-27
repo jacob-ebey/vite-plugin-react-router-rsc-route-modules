@@ -1,21 +1,56 @@
-import * as index from "./route-index.ts";
+import {
+  createTemporaryReferenceSet,
+  decodeAction,
+  decodeFormState,
+  decodeReply,
+  loadServerAction,
+  renderToReadableStream,
+} from "@vitejs/plugin-rsc/rsc";
+import {
+  RouterContextProvider,
+  unstable_matchRSCServerRequest as matchRSCServerRequest,
+} from "react-router";
 
-export const routes = {
-  index,
+import { routes } from "./routes.ts";
+
+export function fetchServer(request: Request, requestContext?: RouterContextProvider) {
+  return matchRSCServerRequest({
+    basename: "/",
+    // Provide the React Server touchpoints.
+    createTemporaryReferenceSet,
+    decodeAction,
+    decodeFormState,
+    decodeReply,
+    loadServerAction,
+    // The incoming request.
+    request,
+    requestContext,
+    // The app routes.
+    routes,
+    // The route discovery configuration.
+    routeDiscovery: { mode: "initial" },
+    // Encode the match with the React Server implementation.
+    generateResponse(match, options) {
+      return new Response(renderToReadableStream(match.payload, options), {
+        status: match.statusCode,
+        headers: match.headers,
+      });
+    },
+  });
+}
+
+export default {
+  async fetch(request: Request, requestContext?: RouterContextProvider) {
+    if (requestContext && !(requestContext instanceof RouterContextProvider)) {
+      requestContext = undefined;
+    }
+
+    const ssr = await import.meta.viteRsc.loadModule<typeof import("./ssr.tsx")>("ssr", "index");
+
+    return await ssr.generateHTML(request, await fetchServer(request, requestContext));
+  },
 };
 
-for (const route of Object.keys(routes)) {
-  for (const key of Object.keys(routes[route as keyof typeof routes])) {
-    const value = (routes[route as keyof typeof routes] as any)[key];
-    try {
-      value();
-      console.log(route, key, "server runtime");
-    } catch (error) {
-      if ((error as Error).message.includes("Unexpectedly client reference export")) {
-        console.log(route, key, "client reference");
-      } else {
-        console.error(route, key, error);
-      }
-    }
-  }
+if (import.meta.hot) {
+  import.meta.hot.accept();
 }

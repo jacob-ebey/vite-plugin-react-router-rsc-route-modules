@@ -15,6 +15,7 @@ const CLIENT_EXPORTS = [
   ...SHARED_EXPORTS,
   "clientMiddleware",
   "handle",
+  "shouldRevalidate",
 ];
 
 const SERVER_COMPONENTS = [
@@ -201,18 +202,6 @@ function createClientRouteModule(
         name === "default"
           ? "export default "
           : `export const ${name} = (...args) => import(${JSON.stringify(clientId)}).then((mod) => mod.${name}(...args));\n`,
-      );
-    } else if (CLIENT_COMPONENTS.includes(name)) {
-      needsReactImport = true;
-      const clientId = createIdFrom(id, "client-route-module", name);
-      magicString.append(
-        [
-          "\n",
-          name === "default" ? "export default " : `export const ${name} = `,
-          "__rr_React.lazy(() => import(",
-          JSON.stringify(clientId),
-          "));\n",
-        ].join(""),
       );
     } else if (SHARED_EXPORTS.includes(name)) {
       const sharedId = createIdFrom(id, "shared-route-module");
