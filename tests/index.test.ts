@@ -247,11 +247,9 @@ describe("client route module", () => {
     const input = ["'use route';", "export default function Component() {}"];
     const result = await directiveTransformClient(input.join("\n"), "/test.ts?client-route-module");
     expect(result?.code).toBe(
-      [
-        '"use client";',
-        'import * as __rr_React from "react";',
-        'export default __rr_React.lazy(() => import("/test.ts?client-route-module=default"));\n',
-      ].join("\n"),
+      ['"use client";', 'export { default } from "/test.ts?client-route-module=default";\n'].join(
+        "\n",
+      ),
     );
   });
 
@@ -259,11 +257,9 @@ describe("client route module", () => {
     const input = ["'use route';", "export default () => {}"];
     const result = await directiveTransformClient(input.join("\n"), "/test.ts?client-route-module");
     expect(result?.code).toBe(
-      [
-        '"use client";',
-        'import * as __rr_React from "react";',
-        'export default __rr_React.lazy(() => import("/test.ts?client-route-module=default"));\n',
-      ].join("\n"),
+      ['"use client";', 'export { default } from "/test.ts?client-route-module=default";\n'].join(
+        "\n",
+      ),
     );
   });
 
@@ -271,11 +267,9 @@ describe("client route module", () => {
     const input = ["'use route';", "export { default } from './Component';"];
     const result = await directiveTransformClient(input.join("\n"), "/test.ts?client-route-module");
     expect(result?.code).toBe(
-      [
-        '"use client";',
-        'import * as __rr_React from "react";',
-        'export default __rr_React.lazy(() => import("/test.ts?client-route-module=default"));\n',
-      ].join("\n"),
+      ['"use client";', 'export { default } from "/test.ts?client-route-module=default";\n'].join(
+        "\n",
+      ),
     );
   });
 
@@ -283,11 +277,9 @@ describe("client route module", () => {
     const input = ["'use route';", "export { Component as default } from './Layout';"];
     const result = await directiveTransformClient(input.join("\n"), "/test.ts?client-route-module");
     expect(result?.code).toBe(
-      [
-        '"use client";',
-        'import * as __rr_React from "react";',
-        'export default __rr_React.lazy(() => import("/test.ts?client-route-module=default"));\n',
-      ].join("\n"),
+      ['"use client";', 'export { default } from "/test.ts?client-route-module=default";\n'].join(
+        "\n",
+      ),
     );
   });
 
@@ -302,10 +294,9 @@ describe("client route module", () => {
     expect(result?.code).toBe(
       [
         '"use client";',
-        'import * as __rr_React from "react";',
-        'export default __rr_React.lazy(() => import("/test.ts?client-route-module=default"));',
-        'export const Layout = __rr_React.lazy(() => import("/test.ts?client-route-module=Layout"));',
-        'export const ErrorBoundary = __rr_React.lazy(() => import("/test.ts?client-route-module=ErrorBoundary"));\n',
+        'export { default } from "/test.ts?client-route-module=default";',
+        'export { Layout } from "/test.ts?client-route-module=Layout";',
+        'export { ErrorBoundary } from "/test.ts?client-route-module=ErrorBoundary";\n',
       ].join("\n"),
     );
   });
@@ -361,10 +352,9 @@ describe("client route module", () => {
     expect(result?.code).toBe(
       [
         '"use client";',
-        'import * as __rr_React from "react";',
         'export { meta } from "/test.ts?shared-route-module=";',
         'export const clientAction = (...args) => import("/test.ts?client-route-module=clientAction").then((mod) => mod.clientAction(...args));',
-        'export const Layout = __rr_React.lazy(() => import("/test.ts?client-route-module=Layout"));\n',
+        'export { Layout } from "/test.ts?client-route-module=Layout";\n',
       ].join("\n"),
     );
   });

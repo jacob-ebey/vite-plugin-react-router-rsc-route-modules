@@ -34,9 +34,7 @@ export type FrameworkModule = {
   shouldRevalidate?: ShouldRevalidateFunction;
 };
 
-export function frameworkRoute(
-  lazy: () => Promise<FrameworkModule>,
-): NonNullable<unstable_RSCRouteConfigEntry["lazy"]> {
+export function frameworkRoute(lazy: () => Promise<FrameworkModule>) {
   return async () => {
     const mod = await lazy();
     let Component: React.ComponentType<any> | undefined;
