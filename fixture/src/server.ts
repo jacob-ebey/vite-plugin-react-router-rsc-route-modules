@@ -47,13 +47,13 @@ export default {
       requestContext = undefined;
     }
 
-    const ssr = await import.meta.viteRsc.loadModule<typeof import("./ssr.tsx")>("ssr", "index");
-
     const rscResponse = await fetchServer(request, requestContext);
 
     if (SINGLE_PAGE_APP) {
       return rscResponse;
     }
+
+    const ssr = await import.meta.viteRsc.loadModule<typeof import("./ssr.tsx")>("ssr", "index");
 
     return await ssr.generateHTML(request, rscResponse);
   },
