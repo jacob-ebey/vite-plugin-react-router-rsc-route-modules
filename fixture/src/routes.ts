@@ -140,7 +140,7 @@ function frameworkRoute(
 export const routes = [
   {
     id: "root",
-    // path: "",
+    path: "",
     lazy: frameworkRoute(() => import("./root.tsx")),
     children: [
       {
