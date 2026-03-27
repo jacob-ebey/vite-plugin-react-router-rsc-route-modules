@@ -8,7 +8,10 @@ import rsc from "@vitejs/plugin-rsc";
 import { defineConfig, preview, PreviewServer, type Plugin } from "vite-plus";
 import devtoolsJson from "vite-plugin-devtools-json";
 
-import { knownRouteModules, routeModuleDirective } from "../src/index";
+import {
+  knownRouteModules,
+  routeModuleDirective,
+} from "vite-plugin-react-router-rsc-route-modules";
 
 const SINGLE_PAGE_APP = !!process.env.SPA;
 const PRERENDER_PATHS = ["/", "/post/post-1"];

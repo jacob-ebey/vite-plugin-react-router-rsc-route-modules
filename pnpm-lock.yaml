@@ -47,7 +47,7 @@ importers:
         specifier: ~0.1.11
         version: 0.1.14(@types/node@25.5.0)(@voidzero-dev/vite-plus-core@0.1.14(@types/node@25.5.0)(jiti@2.6.1)(typescript@5.9.3)(yaml@2.8.3))(jiti@2.6.1)(typescript@5.9.3)(yaml@2.8.3)
 
-  fixture:
+  fixtures/full:
     dependencies:
       react:
         specifier: ^19.2.4
@@ -91,7 +91,7 @@ importers:
         version: 1.0.0(@voidzero-dev/vite-plus-core@0.1.14(@types/node@25.5.0)(jiti@2.6.1)(typescript@5.9.3)(yaml@2.8.3))
       vite-plugin-react-router-rsc-route-modules:
         specifier: workspace:*
-        version: link:..
+        version: link:../..
       vite-plus:
         specifier: ~0.1.11
         version: 0.1.14(@types/node@25.5.0)(@voidzero-dev/vite-plus-core@0.1.14(@types/node@25.5.0)(jiti@2.6.1)(typescript@5.9.3)(yaml@2.8.3))(jiti@2.6.1)(typescript@5.9.3)(yaml@2.8.3)
