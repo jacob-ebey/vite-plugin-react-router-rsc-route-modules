@@ -28,33 +28,16 @@ export default defineConfig({
     }),
     routeModuleDirective(),
     react(),
-    rsc(),
+    rsc({
+      entries: {
+        client: SINGLE_PAGE_APP ? "./_spa-fallback.html" : "./src/client.tsx",
+        ssr: "./src/ssr.tsx",
+        rsc: "./src/server.ts",
+      },
+    }),
     { enforce: "pre", ...mdx() },
     devtoolsJson(),
   ],
-  environments: {
-    client: {
-      build: {
-        rolldownOptions: {
-          input: { index: SINGLE_PAGE_APP ? "./_spa-fallback.html" : "./src/client.tsx" },
-        },
-      },
-    },
-    ssr: {
-      build: {
-        rolldownOptions: {
-          input: { index: "./src/ssr.tsx" },
-        },
-      },
-    },
-    rsc: {
-      build: {
-        rolldownOptions: {
-          input: { index: "./src/server.ts" },
-        },
-      },
-    },
-  },
   build: {
     rolldownOptions: {
       output: {
