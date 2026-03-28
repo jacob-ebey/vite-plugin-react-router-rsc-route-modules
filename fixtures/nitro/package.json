@@ -1,0 +1,28 @@
+{
+  "type": "module",
+  "scripts": {
+    "build": "vp build",
+    "dev": "vp dev",
+    "start": "vp preview"
+  },
+  "dependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router": "0.0.0-nightly-fbe4951b9-20260326"
+  },
+  "devDependencies": {
+    "@mdx-js/rollup": "^3.1.1",
+    "@types/compression": "^1.8.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20260326.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-rsc": "~0.5.21",
+    "nitro": "3.0.260311-beta",
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.14",
+    "vite-plugin-devtools-json": "^1.0.0",
+    "vite-plugin-react-router-rsc-route-modules": "workspace:*",
+    "vite-plus": "~0.1.11"
+  }
+}

@@ -1,6 +1,6 @@
 import MagicString from "magic-string";
 import { minify } from "oxc-minify";
-import type * as vite from "vite";
+import * as vite from "vite";
 
 const USE_ROUTE_MODULE_DIRECTIVE = "use route";
 const PRELIM_USE_ROUTE_MODULE_DIRECTIVE_REGEX = /(['"])use route\1/;
@@ -57,10 +57,14 @@ export function knownRouteModules({
 }) {
   return {
     name: "vite-plugin-known-route-modules",
-    transform(code, id) {
-      if (!server.includes(this.environment.name) || !isKnownRouteModule(removeIdQuery(id))) return;
+    transform: {
+      order: "pre",
+      handler(code, id) {
+        if (!server.includes(this.environment.name) || !isKnownRouteModule(removeIdQuery(id)))
+          return;
 
-      return '"use route";\n' + code;
+        return '"use route";\n' + code;
+      },
     },
   } satisfies vite.Plugin;
 }
@@ -77,15 +81,21 @@ export function routeModuleDirective({
   const allowedEnvironments = [...client, ...server];
   const isAllowedEnvironment = (envName: string) => allowedEnvironments.includes(envName);
 
+  const validLangs = new Set(["js", "jsx", "ts", "tsx", "dts"]);
+
   return {
     name: "vite-plugin-rsc-route-modules",
     transform: {
-      async handler(code, id) {
+      order: "pre",
+      async handler(source, id) {
         if (!isAllowedEnvironment(this.environment.name)) return;
+        const [filename, ...rest] = id.split("?");
 
-        if (!PRELIM_USE_ROUTE_MODULE_DIRECTIVE_REGEX.test(code)) return;
+        if (!PRELIM_USE_ROUTE_MODULE_DIRECTIVE_REGEX.test(source)) return;
 
-        const program = this.parse(code, { sourceType: "module" });
+        const code = (await vite.transformWithOxc(source, filename, {})).code;
+
+        const program = this.parse(code);
 
         const useRouteDirective = findDirective(program.body, USE_ROUTE_MODULE_DIRECTIVE);
 
@@ -99,7 +109,6 @@ export function routeModuleDirective({
           this.error('"use server" directive is not allowed in route modules');
         }
 
-        const [filename, ...rest] = id.split("?");
         const searchParams = rest.length > 0 ? new URLSearchParams(rest.join("?")) : null;
 
         let magicString = new MagicString(code, { filename });
